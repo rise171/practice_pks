@@ -27,11 +27,12 @@ class _NotesPageState extends State<NotesPage> {
   @override
   void initState() {
     super.initState();
-    final client = ApiClient(baseUrl: 'https://jsonplaceholder.typicode.com');
-    repo = NotesRepository(client);
+    // Теперь репозиторий сам создает ApiClient с настройками из .env
+    repo = NotesRepository();
     _loadMore();
   }
 
+  // Остальной код без изменений...
   @override
   void dispose() {
     _searchDebounce?.cancel();

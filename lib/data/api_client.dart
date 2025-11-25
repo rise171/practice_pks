@@ -1,39 +1,62 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiClient {
   final Dio dio;
 
   ApiClient._(this.dio);
 
-  factory ApiClient({required String baseUrl}) {
+  factory ApiClient() {
+    final baseUrl = dotenv.get('BASE_URL', fallback: 'https://jsonplaceholder.typicode.com');
+    final timeout = int.tryParse(dotenv.get('API_TIMEOUT', fallback: '15')) ?? 15;
+
     final dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: Duration(seconds: timeout),
+      receiveTimeout: Duration(seconds: timeout),
       headers: {
         'Content-Type': 'application/json',
       },
     ));
 
-    //интерцепторы для ретраев и логирования
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        print('🚀 ${options.method} ${options.uri}');
+        final environment = dotenv.get('ENVIRONMENT', fallback: 'production');
+        if (environment == 'development') {
+          print('[${options.method}] ${options.uri}');
+          print('Headers: ${options.headers}');
+          if (options.data != null) {
+            print('Body: ${options.data}');
+          }
+        }
         handler.next(options);
       },
       onResponse: (response, handler) {
-        print('${response.statusCode} ${response.requestOptions.uri}');
+        final environment = dotenv.get('ENVIRONMENT', fallback: 'production');
+        if (environment == 'development') {
+          print('[${response.statusCode}] ${response.requestOptions.uri}');
+          print('Response: ${response.data}');
+        }
         handler.next(response);
       },
       onError: (error, handler) async {
-        print('${error.type} ${error.message}');
+        final environment = dotenv.get('ENVIRONMENT', fallback: 'production');
+        if (environment == 'development') {
+          print('[${error.type}] ${error.message}');
+          if (error.response != null) {
+            print('Error Response: ${error.response?.data}');
+          }
+        }
 
-        //Retry для сетевых ошибок
+        // Ретраи для сетевых ошибок (экспоненциальная пауза)
         if (_shouldRetry(error)) {
           final retryCount = error.requestOptions.extra['retry_count'] ?? 0;
           if (retryCount < 3) {
             final delay = Duration(milliseconds: 500 * (1 << retryCount));
-            print('Retry $retryCount after ${delay.inMilliseconds}ms');
+
+            if (environment == 'development') {
+              print('Retry $retryCount after ${delay.inMilliseconds}ms');
+            }
 
             await Future.delayed(delay);
 
@@ -61,4 +84,9 @@ class ApiClient {
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.connectionError;
   }
+
+  //Геттер для базового URL
+  String get baseUrl => dio.options.baseUrl;
+  // Геттер для текущего окружения
+  String get environment => dotenv.get('ENVIRONMENT', fallback: 'production');
 }

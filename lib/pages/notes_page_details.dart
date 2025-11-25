@@ -132,7 +132,6 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Заголовок
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -197,7 +196,6 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          // Содержимое
           Text(
             'Содержание:',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -218,7 +216,6 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
             ),
           ),
           const SizedBox(height: 32),
-          // Информация
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

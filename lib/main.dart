@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/notes_page.dart';
 
-void main() => runApp(const ApiNotesApp());
+void main() async {
+  await dotenv.load(fileName: ".env");
+  runApp(const ApiNotesApp());
+}
 
 class ApiNotesApp extends StatelessWidget {
   const ApiNotesApp({super.key});

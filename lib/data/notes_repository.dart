@@ -5,7 +5,7 @@ import 'api_client.dart';
 class NotesRepository {
   final ApiClient _client;
 
-  NotesRepository(this._client);
+  NotesRepository() : _client = ApiClient();
 
   Future<List<Note>> list({int page = 1, int limit = 20, String? searchQuery}) async {
     try {
