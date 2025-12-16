@@ -6,7 +6,8 @@
 Шаги выполнения:
 1. Подготовка: установка зависимостей
 
-/n![img_14.png](img_14.png)
+![img_14.png](img_14.png)
+
 flutter analyze:
 ![img_15.png](img_15.png)
 3. Cоздание unit-тестов:
