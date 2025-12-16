@@ -1,6 +1,5 @@
+import 'package:flutter/foundation.dart'; // Добавляем для Key
 import 'package:flutter/material.dart';
-import 'package:notes_sqlite_app/page/note_page.dart';
-import 'package:notes_sqlite_app/data/db_helper.dart';
 
 class Note {
   final int? id;
@@ -18,6 +17,9 @@ class Note {
     required this.updatedAt,
     this.isFavorite = false,
   });
+
+  // ОПТИМИЗАЦИЯ: Добавляем key для виджетов
+  Key get key => id != null ? ValueKey<int>(id!) : ValueKey<String>('$title$body$createdAt');
 
   Note copyWith({
     int? id,
@@ -37,21 +39,38 @@ class Note {
     );
   }
 
-  factory Note.fromMap(Map<String, Object?> map) => Note(
-    id: map['id'] as int?,
-    title: map['title'] as String? ?? '',
-    body: map['body'] as String? ?? '',
-    createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
-    updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
-    isFavorite: (map['is_favorite'] as int? ?? 0) == 1,
-  );
+  factory Note.fromMap(Map<String, Object?> map) {
+    // ОПТИМИЗАЦИЯ: Оптимизированная десериализация
+    final id = map['id'] as int?;
+    final title = map['title'] as String? ?? '';
+    final body = map['body'] as String? ?? '';
 
-  Map<String, Object?> toMap() => {
-    'id': id,
-    'title': title,
-    'body': body,
-    'created_at': createdAt.millisecondsSinceEpoch,
-    'updated_at': updatedAt.millisecondsSinceEpoch,
-    'is_favorite': isFavorite ? 1 : 0,
-  };
+    // ОПТИМИЗАЦИЯ: Прямое преобразование без промежуточных переменных
+    final createdAt = DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int);
+    final updatedAt = DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int);
+
+    // ОПТИМИЗАЦИЯ: Быстрая проверка boolean
+    final isFavoriteInt = map['is_favorite'] as int? ?? 0;
+    final isFavorite = isFavoriteInt == 1;
+
+    return Note(
+      id: id,
+      title: title,
+      body: body,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isFavorite: isFavorite,
+    );
+  }
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'body': body,
+      'created_at': createdAt.millisecondsSinceEpoch,
+      'updated_at': updatedAt.millisecondsSinceEpoch,
+      'is_favorite': isFavorite ? 1 : 0,
+    };
+  }
 }
